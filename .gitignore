@@ -1,0 +1,11 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+.venv/
+__pycache__/
+*.pyc
+
+function_app/.python_packages/
+function_app/local.settings.json

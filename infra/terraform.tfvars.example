@@ -1,0 +1,6 @@
+project_name = "sharedgrocery"
+
+tags = {
+  environment = "dev"
+  owner       = "shared-grocery-list"
+}
