@@ -61,4 +61,4 @@ jobs:
           az functionapp deployment source config-zip \
             --resource-group "grocery-list" \
             --name "${{ steps.get_app.outputs.app_name }}" \
-            --src-path ./function_app.zip
+            --src ./function_app.zip
