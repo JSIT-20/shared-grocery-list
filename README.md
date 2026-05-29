@@ -105,6 +105,28 @@ Typical workflow:
 3. `terraform plan`
 4. `terraform apply`
 
-Terraform also ZIP-deploys the Python function app from `function_app/`, so the backend code is published during `terraform apply`.
+Terraform creates and configures the Function App infrastructure. The Function App code is deployed separately via Azure CLI (see "Function App Deployment" below).
 
 The Function App is configured with the Cosmos SQL connection string from Terraform state, so the Python app can connect without manual secret wiring.
+
+## Function App Deployment
+
+Function code is deployed independently of Terraform infrastructure using Azure CLI. A workflow at `.github/workflows/deploy-function.yml` automatically deploys code changes:
+
+- Triggers on pushes to `main` when `function_app/` changes
+- Uses Azure CLI to deploy the Function App code via `config-zip`
+- Requires the same Azure service principal secrets as Terraform
+
+Local deployment (manual):
+
+```bash
+cd function_app
+zip -r ../function_app.zip .
+cd ..
+az functionapp deployment source config-zip \
+  --resource-group "grocery-list" \
+  --name "<function-app-name>" \
+  --src-path ./function_app.zip
+```
+
+Remote deployment is handled automatically by GitHub Actions on push.

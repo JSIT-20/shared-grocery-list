@@ -1,0 +1,63 @@
+name: Deploy Function App Code
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "function_app/**"
+      - ".github/workflows/deploy-function.yml"
+
+permissions:
+  contents: read
+
+env:
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        run: |
+          az login --service-principal \
+            -u "$AZURE_CLIENT_ID" \
+            -p "$AZURE_CLIENT_SECRET" \
+            --tenant "$AZURE_TENANT_ID"
+
+      - name: Get Function App Name
+        id: get_app
+        run: |
+          az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+          
+          # Query for function app created by terraform (name starts with sharedgrocery-fn-)
+          APP_NAME=$(az functionapp list \
+            --resource-group "grocery-list" \
+            --query "[?starts_with(name, 'sharedgrocery-fn-')].name | [0]" \
+            --output tsv)
+          
+          if [ -z "$APP_NAME" ]; then
+            echo "Error: Function app not found in resource group 'grocery-list'"
+            exit 1
+          fi
+          
+          echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create Function App ZIP
+        run: |
+          cd function_app
+          zip -r ../function_app.zip .
+          cd ..
+
+      - name: Deploy Function App
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group "grocery-list" \
+            --name "${{ steps.get_app.outputs.app_name }}" \
+            --src-path ./function_app.zip
