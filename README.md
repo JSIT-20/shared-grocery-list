@@ -17,6 +17,29 @@ This repository now contains a Terraform scaffold for an Azure Functions backend
 - `DELETE /api/items/{item_name}` - delete a specific item
 - `DELETE /api/items` - delete all items
 
+## Frontend (GitHub Pages)
+
+A simple static frontend is included in `docs/` and is intended to be served with GitHub Pages.
+
+Features:
+
+- Add items to the grocery list
+- Delete one item at a time
+- Delete all items with one action
+- Mobile-friendly Bootstrap layout
+
+### Configure API URL
+
+The frontend calls the Azure Function App endpoints using a fixed base URL:
+
+- `https://sharedgrocery-fn-vdljxb.azurewebsites.net/api`
+
+### GitHub Pages deployment
+
+A workflow at `.github/workflows/pages.yml` deploys `docs/` to GitHub Pages on pushes to `main`.
+
+After this workflow is merged, enable GitHub Pages in repository settings using **GitHub Actions** as the source.
+
 ## Terraform
 
 Terraform lives in `infra/`.
