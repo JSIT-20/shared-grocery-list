@@ -16,6 +16,7 @@ env:
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  FUNCTION_APP_HOSTNAME: sharedgrocery-fn-vdljxb.azurewebsites.net
 
 jobs:
   deploy:
@@ -35,18 +36,18 @@ jobs:
         id: get_app
         run: |
           az account set --subscription "$AZURE_SUBSCRIPTION_ID"
-          
-          # Query for function app created by terraform (name starts with sharedgrocery-fn-)
+
+          # Resolve the app by exact default hostname so deploy target matches frontend API URL.
           APP_NAME=$(az functionapp list \
             --resource-group "grocery-list" \
-            --query "[?starts_with(name, 'sharedgrocery-fn-')].name | [0]" \
+            --query "[?defaultHostName=='$FUNCTION_APP_HOSTNAME'].name | [0]" \
             --output tsv)
-          
+
           if [ -z "$APP_NAME" ]; then
-            echo "Error: Function app not found in resource group 'grocery-list'"
+            echo "Error: Function app with hostname '$FUNCTION_APP_HOSTNAME' was not found in resource group 'grocery-list'"
             exit 1
           fi
-          
+
           echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Create Function App ZIP
@@ -60,4 +61,4 @@ jobs:
           az functionapp deployment source config-zip \
             --resource-group "grocery-list" \
             --name "${{ steps.get_app.outputs.app_name }}" \
-            --src ./function_app.zip
+            --src-path ./function_app.zip
