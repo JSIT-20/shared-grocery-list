@@ -34,6 +34,9 @@ The frontend calls the Azure Function App endpoints using a fixed base URL:
 
 - `https://sharedgrocery-fn-vdljxb.azurewebsites.net/api`
 
+For browser access from GitHub Pages, Function App CORS is configured in Terraform using `function_app_cors_allowed_origins`.
+The default includes `https://jsit-20.github.io`.
+
 ### GitHub Pages deployment
 
 A workflow at `.github/workflows/pages.yml` deploys `docs/` to GitHub Pages on pushes to `main`.

@@ -110,6 +110,10 @@ resource "azurerm_linux_function_app" "api" {
 
     minimum_tls_version = "1.2"
     ftps_state          = "Disabled"
+
+    cors {
+      allowed_origins = var.function_app_cors_allowed_origins
+    }
   }
 
   app_settings = {
