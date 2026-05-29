@@ -29,6 +29,10 @@ data "archive_file" "function_app" {
   output_path = "${path.root}/.terraform/function_app.zip"
 }
 
+resource "terraform_data" "function_app_package" {
+  input = data.archive_file.function_app.output_base64sha256
+}
+
 data "azurerm_resource_group" "existing" {
   name = "grocery-list"
 }
@@ -122,6 +126,7 @@ resource "azurerm_linux_function_app" "api" {
     COSMOS_CONNECTION_STRING = azurerm_cosmosdb_account.this.primary_sql_connection_string
     COSMOS_DATABASE_NAME     = azurerm_cosmosdb_sql_database.grocery.name
     COSMOS_CONTAINER_NAME    = azurerm_cosmosdb_sql_container.items.name
+    SOURCE_CODE_HASH         = terraform_data.function_app_package.input
   }
 
   tags = local.common_tags

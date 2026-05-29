@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - "infra/**"
+      - "function_app/**"
       - ".github/workflows/terraform.yml"
   push:
     branches:
       - main
     paths:
       - "infra/**"
+      - "function_app/**"
       - ".github/workflows/terraform.yml"
 
 permissions:
