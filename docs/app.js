@@ -60,7 +60,11 @@ function renderItems(items) {
     deleteBtn.className = "btn btn-outline-danger btn-sm flex-shrink-0";
     deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", async () => {
-      await deleteItem(item.item_name);
+      if (!item.id) {
+        showAlert("Cannot delete this item because it is missing an id.", "warning");
+        return;
+      }
+      await deleteItem(item.id);
     });
 
     li.appendChild(name);
@@ -128,12 +132,12 @@ async function addItem(itemName) {
   }
 }
 
-async function deleteItem(itemName) {
+async function deleteItem(itemId) {
   setLoading(true);
   clearAlert();
 
   try {
-    await request(`/items/${encodeURIComponent(itemName)}`, { method: "DELETE" });
+    await request(`/items/${encodeURIComponent(itemId)}`, { method: "DELETE" });
     await loadItems();
   } catch (error) {
     showAlert(error.message, "danger");

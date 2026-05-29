@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from datetime import datetime, timezone
 
 import azure.functions as func
@@ -48,7 +49,7 @@ def add_item(req: func.HttpRequest) -> func.HttpResponse:
         return json_response({"error": "item_name is required."}, status_code=400)
 
     item = {
-        "id": item_name,
+        "id": str(uuid.uuid4()),
         "item_name": item_name,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -59,18 +60,31 @@ def add_item(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.function_name(name="delete_item")
-@app.route(route="items/{item_name}", methods=["DELETE"])
+@app.route(route="items/{item_id}", methods=["DELETE"])
 def delete_item(req: func.HttpRequest) -> func.HttpResponse:
-    item_name = str(req.route_params.get("item_name", "")).strip()
-    if not item_name:
-        return json_response({"error": "item_name is required."}, status_code=400)
+    item_id = str(req.route_params.get("item_id", "")).strip()
+    if not item_id:
+        return json_response({"error": "item_id is required."}, status_code=400)
 
     container = get_container()
 
+    found_items = list(
+        container.query_items(
+            query="SELECT TOP 1 c.id, c.item_name FROM c WHERE c.id = @item_id",
+            parameters=[{"name": "@item_id", "value": item_id}],
+            enable_cross_partition_query=True,
+        )
+    )
+
+    if not found_items:
+        return json_response({"error": f"Item '{item_id}' was not found."}, status_code=404)
+
+    item = found_items[0]
+
     try:
-        container.delete_item(item=item_name, partition_key=item_name)
+        container.delete_item(item=item["id"], partition_key=item["item_name"])
     except exceptions.CosmosResourceNotFoundError:
-        return json_response({"error": f"Item '{item_name}' was not found."}, status_code=404)
+        return json_response({"error": f"Item '{item_id}' was not found."}, status_code=404)
 
     return func.HttpResponse(status_code=204)
 

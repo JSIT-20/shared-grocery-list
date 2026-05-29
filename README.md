@@ -14,7 +14,7 @@ This repository now contains a Terraform scaffold for an Azure Functions backend
 
 - `GET /api/items` - list all items
 - `POST /api/items` - add an item
-- `DELETE /api/items/{item_name}` - delete a specific item
+- `DELETE /api/items/{item_id}` - delete a specific item
 - `DELETE /api/items` - delete all items
 
 ## Frontend (GitHub Pages)
